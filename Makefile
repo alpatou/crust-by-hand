@@ -9,3 +9,6 @@ build:
 
 connect-to-db:
 	docker exec -it mysql mysql -p
+	
+watch:
+	cargo watch -q -c -w src/ -x run

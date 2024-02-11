@@ -1,6 +1,14 @@
 use actix_web::middleware::Logger;
 use actix_web::{get, App, HttpResponse, HttpServer, Responder};
 use serde_json::json;
+use sqlx::MySqlPool;
+mod handler;
+mod model;
+mod schema;
+
+pub struct AppState {
+    db: MySqlPool,
+}
 
 #[get("/api/healthchecker")]
 async fn health_checker_handler() -> impl Responder {
