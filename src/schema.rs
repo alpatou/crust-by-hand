@@ -15,10 +15,10 @@ pub struct ParamOptions {
 pub struct CreateNoteSchema {
     pub title: String,
     pub content: String,
-    #[serde(skip_serialization_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub category: Option<String>,
-    #[serde(skip_serialization_if = "Option::is_none")]
-    pub published: Option<Bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub published: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -26,5 +26,5 @@ pub struct UpdateNoteSchema {
     pub title: String,
     pub content: String,
     pub category: Option<String>,
-    pub published: Option<Bool>,
+    pub published: Option<bool>,
 }

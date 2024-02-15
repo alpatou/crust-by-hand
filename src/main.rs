@@ -22,6 +22,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .service(health_checker_handler)
+            .service(handler::note_list_handler)
             .wrap(Logger::default())
     })
     .bind(("127.0.0.1", 8000))?

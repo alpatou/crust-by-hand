@@ -1,3 +1,4 @@
+use chrono;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
@@ -8,8 +9,8 @@ pub struct NoteModel {
     pub content: String,
     pub category: Option<String>,
     pub published: i8,
-    pub created_at: Option<Chrono::DateTime<chrone::Utc>>,
-    pub updated_at: Option<Chrono::DateTime<chrone::Utc>>,
+    pub created_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
