@@ -141,24 +141,97 @@ async fn edit_note_handler(
         .await;
 
     let note = match query_result {
-        Ok(note) => note, 
+        Ok(note) => note,
         Err(sqlx::Error::RowNotFound) => {
             return HttpResponse::NotFound().json(
                 serde_json::json!({"status": "fail","message": format!("Note with ID: {} not found", note_id)}),
             )
-        }, 
+        },
         Err(error) => {
             return HttpResponse::InternalServerError().json(
-                serde_json::json!({"status" : "error", "message" : format!("{}", error)}):
+                serde_json::json!({"status" : "error", "message" : format!("{}", error)})
             );
         }
     };
 
     // process the body
 
-    // update it
+    let published: bool = body.published.unwrap_or(note.published != 0);
+
+    let i8_published: i8 = published as i8;
+
+    let update_result = sqlx::query(
+        r#"UPDATE notes set title = ? , content = ? category = ? , published = ? WHERE id = ?"#,
+    )
+    .bind(body.title.to_owned())
+    .bind(body.content.to_owned())
+    .bind(body.category.to_owned())
+    .bind(i8_published)
+    .bind(note_id.to_owned())
+    .execute(&data.db)
+    .await;
+
+    match update_result {
+        Ok(result) => {
+            if result.rows_affected() == 0 {
+                let message = format!("Note with ID: {} not found", note_id);
+                return HttpResponse::NotFound()
+                    .json(serde_json::json!({"status": "fail","message": message}));
+            }
+        }
+        Err(e) => {
+            let message = format!("Internal server error: {}", e);
+            return HttpResponse::InternalServerError()
+                .json(serde_json::json!({"status": "error","message": message}));
+        }
+    }
 
     // refetch it
+    let updated_note = sqlx::query_as!(
+        NoteModel,
+        r#"SELECT * FROM notes WHERE id=?"#,
+        note_id.to_owned()
+    )
+    .fetch_one(&data.db)
+    .await;
 
-HttpResponse::Ok().json("value")
+    return match updated_note {
+        Ok(note) => {
+            let note_response = serde_json::json!({"status": "success","data": serde_json::json!({
+                "note": filter_db_record(&note)
+            })});
+
+            HttpResponse::Ok().json(note_response)
+        }
+        Err(error) => HttpResponse::InternalServerError()
+            .json(serde_json::json!({"status": "error","message": format!("{:?}", error)})),
+    };
+}
+
+#[delete("/notes/{id}")]
+async fn delete_note_handler(
+    path: web::Path<uuid::Uuid>,
+    data: web::Data<AppState>,
+) -> impl Responder {
+    let note_id = path.into_inner().to_string();
+    let query_result = sqlx::query!(r#"DELETE FROM notes WHERE id = ?"#, note_id)
+        .execute(&data.db)
+        .await;
+
+    match query_result {
+        Ok(result) => {
+            if result.rows_affected() == 0 {
+                let message = format!("Note with ID: {} not found", note_id);
+                HttpResponse::NotFound()
+                    .json(serde_json::json!({"status": "fail","message": message}))
+            } else {
+                HttpResponse::NoContent().finish()
+            }
+        }
+        Err(e) => {
+            let message = format!("Internal server error: {}", e);
+            HttpResponse::InternalServerError()
+                .json(serde_json::json!({"status": "error","message": message}))
+        }
+    }
 }
