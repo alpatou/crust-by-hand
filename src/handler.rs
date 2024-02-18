@@ -1,14 +1,31 @@
-use std::fmt::Error;
-
 use crate::{
+    health_checker_handler,
     model::{NoteModel, NoteModelResponse},
     schema::{CreateNoteSchema, FilterOptions, UpdateNoteSchema},
     AppState,
 };
-
-use actix_web::{delete, get, guard::Not, patch, post, web, HttpResponse, Responder};
+use actix_web::{
+    delete, get,
+    guard::Not,
+    patch, post,
+    web::{self, ServiceConfig},
+    HttpResponse, Responder,
+};
 use serde::ser::Impossible;
 use serde_json::Value;
+use std::fmt::Error;
+
+pub fn config(conf: &mut web::ServiceConfig) -> () {
+    let scope = web::scope("/api")
+        .service(health_checker_handler)
+        .service(note_list_handler)
+        .service(edit_note_handler)
+        .service(create_note_handler)
+        .service(create_note_handler)
+        .service(delete_note_handler);
+
+    conf.service(scope);
+}
 
 fn filter_db_record(note: &NoteModel) -> NoteModelResponse {
     NoteModelResponse {
