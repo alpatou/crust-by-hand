@@ -126,3 +126,39 @@ async fn get_note_handler(
         Err(_) => todo!(),
     }
 }
+
+#[patch("/api/notes/{id}")]
+async fn edit_note_handler(
+    path: web::Path<uuid::Uuid>,
+    body: web::Json<UpdateNoteSchema>,
+    data: web::Data<AppState>,
+) -> impl Responder {
+    // fetch the note
+    let note_id: String = path.into_inner().to_string();
+
+    let query_result = sqlx::query_as!(NoteModel, r#"SELECT * FROM notes WHERE id=? "#, note_id)
+        .fetch_one(&data.db)
+        .await;
+
+    let note = match query_result {
+        Ok(note) => note, 
+        Err(sqlx::Error::RowNotFound) => {
+            return HttpResponse::NotFound().json(
+                serde_json::json!({"status": "fail","message": format!("Note with ID: {} not found", note_id)}),
+            )
+        }, 
+        Err(error) => {
+            return HttpResponse::InternalServerError().json(
+                serde_json::json!({"status" : "error", "message" : format!("{}", error)}):
+            );
+        }
+    };
+
+    // process the body
+
+    // update it
+
+    // refetch it
+
+HttpResponse::Ok().json("value")
+}
