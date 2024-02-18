@@ -21,7 +21,7 @@ pub fn config(conf: &mut web::ServiceConfig) -> () {
         .service(note_list_handler)
         .service(edit_note_handler)
         .service(create_note_handler)
-        .service(create_note_handler)
+        .service(get_note_handler)
         .service(delete_note_handler);
 
     conf.service(scope);

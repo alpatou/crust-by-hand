@@ -13,7 +13,7 @@ pub struct AppState {
     db: MySqlPool,
 }
 
-#[get("/api/healthchecker")]
+#[get("/healthchecker")]
 async fn health_checker_handler() -> impl Responder {
     const MESSAGE: &str = "Build Crud with Rust , sqlx , and mysql";
 
